@@ -13,6 +13,8 @@ const userData = [
 const UsersTable = () => {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filteredUsers, setFilteredUsers] = useState(userData);
+	const [editingUser, setEditingUser] = useState(null);
+	const [editFormData, setEditFormData] = useState({ name: "", email: "", role: "", status: "" });
 
 	const handleSearch = (e) => {
 		const term = e.target.value.toLowerCase();
@@ -21,6 +23,34 @@ const UsersTable = () => {
 			(user) => user.name.toLowerCase().includes(term) || user.email.toLowerCase().includes(term)
 		);
 		setFilteredUsers(filtered);
+	};
+
+	const handleDelete = (userId) => {
+		const updatedUsers = filteredUsers.filter((user) => user.id !== userId);
+		setFilteredUsers(updatedUsers);
+	};
+
+	const handleEditClick = (user) => {
+		setEditingUser(user.id);
+		setEditFormData({
+			name: user.name,
+			email: user.email,
+			role: user.role,
+			status: user.status,
+		});
+	};
+
+	const handleEditChange = (e) => {
+		const { name, value } = e.target;
+		setEditFormData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const handleEditSave = () => {
+		const updatedUsers = filteredUsers.map((user) =>
+			user.id === editingUser ? { ...user, ...editFormData } : user
+		);
+		setFilteredUsers(updatedUsers);
+		setEditingUser(null); // Close the edit form after saving
 	};
 
 	return (
@@ -109,8 +139,67 @@ const UsersTable = () => {
 								</td>
 
 								<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-									<button className='text-indigo-400 hover:text-indigo-300 mr-2'>Edit</button>
-									<button className='text-red-400 hover:text-red-300'>Delete</button>
+									{editingUser === user.id ? (
+										<div>
+											<input
+												type="text"
+												name="name"
+												value={editFormData.name}
+												onChange={handleEditChange}
+												className="bg-gray-700 text-white rounded-lg pl-2 pr-2 py-1 mb-1"
+											/>
+											<input
+												type="text"
+												name="email"
+												value={editFormData.email}
+												onChange={handleEditChange}
+												className="bg-gray-700 text-white rounded-lg pl-2 pr-2 py-1 mb-1"
+											/>
+											<input
+												type="text"
+												name="role"
+												value={editFormData.role}
+												onChange={handleEditChange}
+												className="bg-gray-700 text-white rounded-lg pl-2 pr-2 py-1 mb-1"
+											/>
+											<select
+												name="status"
+												value={editFormData.status}
+												onChange={handleEditChange}
+												className="bg-gray-700 text-white rounded-lg pl-2 pr-2 py-1 mb-1"
+											>
+												<option value="Active">Active</option>
+												<option value="Inactive">Inactive</option>
+											</select>
+											<button
+												onClick={handleEditSave}
+												className='text-green-400 hover:text-green-300 mr-2'
+											>
+												Save
+											</button>
+											<button
+												onClick={() => setEditingUser(null)}
+												className='text-red-400 hover:text-red-300'
+											>
+												Cancel
+											</button>
+										</div>
+									) : (
+										<>
+											<button
+												onClick={() => handleEditClick(user)}
+												className='text-indigo-400 hover:text-indigo-300 mr-2'
+											>
+												Edit
+											</button>
+											<button
+												onClick={() => handleDelete(user.id)}
+												className='text-red-400 hover:text-red-300'
+											>
+												Delete
+											</button>
+										</>
+									)}
 								</td>
 							</motion.tr>
 						))}
